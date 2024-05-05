@@ -3,23 +3,16 @@
 вызывает необходимые ему функции для работы с кошельком, посредством ввода
 номера интересующего его действия
 """
-
-dict_func: dict = {
-    "1": "balance",
-    "2": "add_record",
-    "3": "edit_record",
-    "4": "search",
-    "5": False
-}
+from finance import action_dict
 
 if __name__ == "__main__":
     while True:
         print("1. Вывести баланс\n2. Добавить запись\n3. Редактировать запись"
               "\n4. Поиск записей\n5. Выход")
         try:
-            action = dict_func[input()]
+            action = action_dict[input()]
             if action is False:
                 break
-            print(action)
+            action()
         except KeyError:
             print("\nОшибка!!! Введите номер пункта(цифра от 1 до 5)\n")
