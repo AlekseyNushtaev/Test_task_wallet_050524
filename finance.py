@@ -1,7 +1,12 @@
+"""Модуль для работы с записями"""
+from validator import Validator
+
+
 class RecordWorker:
     """Класс для работы с записями файла"""
     def __init__(self, filepath: str):
         self.filepath = filepath
+        self.validator = Validator()
 
     def record_to_str(self, id, date, category, total, description):
         """Функция для преобразования записи к строке"""
@@ -28,14 +33,11 @@ class RecordWorker:
 
     def add_record(self) -> None:
         """Функция для добавления записи в файл"""
-        id: int = len(self.load_records())//6
-        date: str = input("Введите дату\n")
-        category: str = input("Введите категорию\n")
-        total: str = input("Введите сумму\n")
-        description: str = input("Введите описание\n")
+        id: int = len(self.load_records())
+        record_data: list = self.validator.input_valid_data()
 
         with open(self.filepath, "a", encoding="utf-8") as file:
-            file.write(self.record_to_str(id, date, category, total, description))
+            file.write(self.record_to_str(id, *record_data))
 
         print(f"Создана запись с индексом {id}\n")
 
@@ -45,19 +47,17 @@ class RecordWorker:
         records_list = [record.split(":") for record in records]
         debit = filter(lambda x: x[2] == "Доход", records_list)
         credit = filter(lambda x: x[2] == "Расход", records_list)
-        res: int = sum(int(item[3]) for item in debit) - sum(int(item[3]) for item in credit)
+        result: int = sum(int(item[3]) for item in debit) - sum(int(item[3]) for item in credit)
 
-        print(f"Ваш баланс {res}\n")
+        print(f"Ваш баланс {result}\n")
 
     def edit_record(self):
-        id: int = int(input("Введите номер записи для редактирования\n"))
-        date: str = input("Введите дату\n")
-        category: str = input("Введите категорию\n")
-        total: str = input("Введите сумму\n")
-        description: str = input("Введите описание\n")
-
+        """Функция для редактирования записи по id"""
         records: list = self.load_records()
-        records[id] = self.record_to_str(id, date, category, total, description)
+        id: int = self.validator.input_valid_id(len(records))
+        record_data: list = self.validator.input_valid_data()
+
+        records[id] = self.record_to_str(id, *record_data)
 
         with open(self.filepath, "w", encoding="utf-8") as file:
             file.writelines(records)
@@ -71,9 +71,13 @@ class RecordWorker:
                        "2. Дата\n"
                        "3. Категория\n"
                        "4. Сумма\n"
-                       "5. Описание\n\n")
-        value: str = input("Введите значение по которому хотите выполнить поиск записей\n\n")
+                       "5. Описание\n")
+        value: str = input("Введите значение по которому хотите выполнить поиск записей\n")
         records: list = self.load_records()
-        filter_records: list = filter(lambda x: x[int(n)-1] == value, records)
-        for rec in filter_records:
-            print(self.record_to_str(rec[0], rec[1], rec[2], rec[3], rec[4]))
+        filter_records: list = list(filter(lambda x: x[int(n)-1] == value, records))
+        if filter_records:
+            print("\nРезультаты поиска:")
+            for rec in filter_records:
+                print(self.record_to_str(rec[0], rec[1], rec[2], rec[3], rec[4]), end='')
+        else:
+            print("По заданным параметрам ничего не найдено!\n")
